@@ -72,6 +72,11 @@ class TestFasterCSVInterface < Test::Unit::TestCase
     assert_equal(%w{1 2 3}, row)
   end
   
+  def test_parse_line_with_empty_lines
+    assert_equal(nil,       FasterCSV.parse_line(""))  # to signal eof
+    assert_equal(Array.new, FasterCSV.parse_line("\n1,2,3"))
+  end
+  
   def test_read_and_readlines
     assert_equal( @expected,
                   FasterCSV.read(@path, :col_sep => "\t", :row_sep => "\r\n") )
@@ -102,6 +107,17 @@ class TestFasterCSVInterface < Test::Unit::TestCase
       assert_equal(@expected.shift, csv.shift)
       assert_equal(nil, csv.shift)
     end
+  end
+
+  def test_long_line # ruby's regex parser may have problems with long rows
+    File.unlink(@path)
+
+    long_field_length = 2800
+    File.open(@path, "w") do |file|
+      file << "1\t2\t#{'3' * long_field_length}\r\n"
+    end
+    @expected = [%w{1 2} + ['3' * long_field_length]]
+    test_shift
   end
   
   ### Test Write Interface ###
@@ -165,7 +181,7 @@ class TestFasterCSVInterface < Test::Unit::TestCase
       csv << lines.first.keys
       lines.each { |line| csv << line }
     end
-    FasterCSV.open( @path, "w", :headers           => true,
+    FasterCSV.open( @path, "r", :headers           => true,
                                 :converters        => :all,
                                 :header_converters => :symbol ) do |csv|
       csv.each { |line| assert_equal(lines.shift, line.to_hash) }
