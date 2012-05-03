@@ -74,7 +74,20 @@ class TestCSVParsing < Test::Unit::TestCase
       assert_equal(csv_test.last, FasterCSV.parse_line(csv_test.first))
     end
   end
-  
+
+  def test_backslash_quoted_comma
+    ex = %Q{Ten\\, Thousand,10000}
+    assert_equal( [ "Ten, Thousand", "10000" ],
+                 FasterCSV.parse_line(ex, :escape_char => '\\' ) )
+  end
+
+  def test_double_quoted_comma
+    ex = %Q{"Ten, Thousand",10000}
+    assert_equal( [ "Ten, Thousand", "10000" ],
+                 FasterCSV.parse_line(ex, :escape_char => '\\' ) )
+  end
+
+
   # From:  http://ruby-talk.org/cgi-bin/scat.rb/ruby/ruby-core/6496
   def test_aras_edge_cases
     [ [%Q{a,b},               ["a", "b"]],

@@ -825,6 +825,7 @@ else
     # <b><tt>:col_sep</tt></b>::            <tt>","</tt>
     # <b><tt>:row_sep</tt></b>::            <tt>:auto</tt>
     # <b><tt>:quote_char</tt></b>::         <tt>'"'</tt>
+    # <b><tt>:escape_char</tt></b>::        +nil+
     # <b><tt>:converters</tt></b>::         +nil+
     # <b><tt>:unconverted_fields</tt></b>:: +nil+
     # <b><tt>:headers</tt></b>::            +false+
@@ -835,7 +836,8 @@ else
     # 
     DEFAULT_OPTIONS = { :col_sep            => ",",
                         :row_sep            => :auto,
-                        :quote_char         => '"', 
+                        :quote_char         => '"',
+                        :escape_char        => nil,
                         :converters         => nil,
                         :unconverted_fields => nil,
                         :headers            => false,
@@ -1343,6 +1345,12 @@ else
     #                                       FasterCSV will always consider a
     #                                       double sequence this character to be
     #                                       an escaped quote.
+    # <b><tt>:escape_char</tt></b>::        The character used to escape special
+    #                                       characters. Quotes are usually doubled
+    #                                       to escape them, and commas are
+    #                                       quoted, but some CSV files use
+    #                                       <tt>\</tt> to escape commas!
+    #                                       Default is nil: no escape character.
     # <b><tt>:encoding</tt></b>::           The encoding to use when parsing the
     #                                       file. Defaults to your <tt>$KDOCE</tt>
     #                                       setting. Valid values: <tt>`n’</tt> or
@@ -1629,9 +1637,26 @@ else
         csv           = Array.new
         current_field = String.new
         field_quotes  = 0
+        escaped       = false
         parse.split(@col_sep, -1).each do |match|
-          if current_field.empty? && match.count(@quote_and_newlines).zero?
+
+          if @escape_char && match[-1,1] == @escape_char
+            current_field << match[0..-2]
+            current_field << @col_sep
+            escaped = true
+
+          elsif escaped
+            current_field << match
+            csv << current_field
+            escaped = false
+            current_field =  String.new
+            field_quotes  =  0
+
+          # handle basic case
+          elsif current_field.empty? && match.count(@quote_and_newlines).zero?
             csv           << (match.empty? ? nil : match)
+
+          # handle quoted case.
           elsif (current_field.empty? ? match[0] : current_field[0]) ==
                 @quote_char[0]
             current_field << match
@@ -1648,6 +1673,7 @@ else
             else # we found a quoted field that spans multiple lines
               current_field << @col_sep
             end
+
           elsif match.count("\r\n").zero?
             raise MalformedCSVError, "Illegal quoting on line #{lineno + 1}."
           else
@@ -1731,6 +1757,7 @@ else
       @col_sep            = options.delete(:col_sep)
       @row_sep            = options.delete(:row_sep)
       @quote_char         = options.delete(:quote_char)
+      @escape_char        = options.delete(:escape_char)
       @quote_and_newlines = "\r\n#{@quote_char}"
 
       if @quote_char.length != 1
