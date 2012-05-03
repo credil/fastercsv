@@ -4,7 +4,7 @@
 #
 #  Created by James Edward Gray II on 2005-10-31.
 #  Copyright 2005 Gray Productions. All rights reserved.
-# 
+#
 # See FasterCSV for documentation.
 
 if RUBY_VERSION >= "1.9"
@@ -14,11 +14,11 @@ if RUBY_VERSION >= "1.9"
                                  "library.  It's FasterCSV plus support for " +
                                  "Ruby 1.9's m17n encoding engine."
     end
-    
+
     def self.method_missing(*_)
       const_missing
     end
-    
+
     def method_missing(*_)
       self.class.const_missing
     end
@@ -30,103 +30,103 @@ else
   require "date"
   require "stringio"
 
-  # 
+  #
   # This class provides a complete interface to CSV files and data.  It offers
   # tools to enable you to read and write to and from Strings or IO objects, as
   # needed.
-  # 
+  #
   # == Reading
-  # 
+  #
   # === From a File
-  # 
+  #
   # ==== A Line at a Time
-  # 
+  #
   #   FasterCSV.foreach("path/to/file.csv") do |row|
   #     # use row here...
   #   end
-  # 
+  #
   # ==== All at Once
-  # 
+  #
   #   arr_of_arrs = FasterCSV.read("path/to/file.csv")
-  # 
+  #
   # === From a String
-  # 
+  #
   # ==== A Line at a Time
-  # 
+  #
   #   FasterCSV.parse("CSV,data,String") do |row|
   #     # use row here...
   #   end
-  # 
+  #
   # ==== All at Once
-  # 
+  #
   #   arr_of_arrs = FasterCSV.parse("CSV,data,String")
-  # 
+  #
   # == Writing
-  # 
+  #
   # === To a File
-  # 
+  #
   #   FasterCSV.open("path/to/file.csv", "w") do |csv|
   #     csv << ["row", "of", "CSV", "data"]
   #     csv << ["another", "row"]
   #     # ...
   #   end
-  # 
+  #
   # === To a String
-  # 
+  #
   #   csv_string = FasterCSV.generate do |csv|
   #     csv << ["row", "of", "CSV", "data"]
   #     csv << ["another", "row"]
   #     # ...
   #   end
-  # 
+  #
   # == Convert a Single Line
-  # 
+  #
   #   csv_string = ["CSV", "data"].to_csv   # to CSV
   #   csv_array  = "CSV,String".parse_csv   # from CSV
-  # 
+  #
   # == Shortcut Interface
-  # 
+  #
   #   FCSV             { |csv_out| csv_out << %w{my data here} }  # to $stdout
   #   FCSV(csv = "")   { |csv_str| csv_str << %w{my data here} }  # to a String
   #   FCSV($stderr)    { |csv_err| csv_err << %w{my data here} }  # to $stderr
   #   FCSV($stdin)     { |csv_in|  csv_in.each { |row| p row } }  # from $stdin
-  # 
+  #
   # == Advanced Usage
-  # 
+  #
   # === Wrap an IO Object
-  # 
+  #
   #   csv = FCSV.new(io, options)
   #   # ... read (with gets() or each()) from and write (with <<) to csv here ...
-  # 
+  #
   class FasterCSV
     # The version of the installed library.
     VERSION = "1.5.4".freeze
 
-    # 
+    #
     # A FasterCSV::Row is part Array and part Hash.  It retains an order for the
     # fields and allows duplicates just as an Array would, but also allows you to
     # access fields by name just as you could if they were in a Hash.
-    # 
+    #
     # All rows returned by FasterCSV will be constructed from this class, if
     # header row processing is activated.
-    # 
+    #
     class Row
-      # 
+      #
       # Construct a new FasterCSV::Row from +headers+ and +fields+, which are
       # expected to be Arrays.  If one Array is shorter than the other, it will be
       # padded with +nil+ objects.
-      # 
+      #
       # The optional +header_row+ parameter can be set to +true+ to indicate, via
       # FasterCSV::Row.header_row?() and FasterCSV::Row.field_row?(), that this is
       # a header row.  Otherwise, the row is assumes to be a field row.
-      # 
+      #
       # A FasterCSV::Row object supports the following Array methods through
       # delegation:
-      # 
+      #
       # * empty?()
       # * length()
       # * size()
-      # 
+      #
       def initialize(headers, fields, header_row = false)
         @header_row = header_row
 
@@ -162,19 +162,19 @@ else
         @row.map { |pair| pair.first }
       end
 
-      # 
+      #
       # :call-seq:
       #   field( header )
       #   field( header, offset )
       #   field( index )
-      # 
+      #
       # This method will fetch the field value by +header+ or +index+.  If a field
       # is not found, +nil+ is returned.
-      # 
+      #
       # When provided, +offset+ ensures that a header match occurrs on or later
-      # than the +offset+ index.  You can use this to find duplicate headers, 
+      # than the +offset+ index.  You can use this to find duplicate headers,
       # without resorting to hard-coding exact indices.
-      # 
+      #
       def field(header_or_index, minimum_index = 0)
         # locate the pair
         finder = header_or_index.is_a?(Integer) ? :[] : :assoc
@@ -185,19 +185,19 @@ else
       end
       alias_method :[], :field
 
-      # 
+      #
       # :call-seq:
       #   []=( header, value )
       #   []=( header, offset, value )
       #   []=( index, value )
-      # 
+      #
       # Looks up the field by the semantics described in FasterCSV::Row.field()
       # and assigns the +value+.
-      # 
+      #
       # Assigning past the end of the row with an index will set all pairs between
       # to <tt>[nil, nil]</tt>.  Assigning to an unused header appends the new
       # pair.
-      # 
+      #
       def []=(*args)
         value = args.pop
 
@@ -218,19 +218,19 @@ else
         end
       end
 
-      # 
+      #
       # :call-seq:
       #   <<( field )
       #   <<( header_and_field_array )
       #   <<( header_and_field_hash )
-      # 
+      #
       # If a two-element Array is provided, it is assumed to be a header and field
       # and the pair is appended.  A Hash works the same way with the key being
       # the header and the value being the field.  Anything else is assumed to be
       # a lone field which is appended with a +nil+ header.
-      # 
+      #
       # This method returns the row for chaining.
-      # 
+      #
       def <<(arg)
         if arg.is_a?(Array) and arg.size == 2  # appending a header and name
           @row << arg
@@ -243,29 +243,29 @@ else
         self  # for chaining
       end
 
-      # 
+      #
       # A shortcut for appending multiple fields.  Equivalent to:
-      # 
+      #
       #   args.each { |arg| faster_csv_row << arg }
-      # 
+      #
       # This method returns the row for chaining.
-      # 
+      #
       def push(*args)
         args.each { |arg| self << arg }
 
         self  # for chaining
       end
 
-      # 
+      #
       # :call-seq:
       #   delete( header )
       #   delete( header, offset )
       #   delete( index )
-      # 
+      #
       # Used to remove a pair from the row by +header+ or +index+.  The pair is
-      # located as described in FasterCSV::Row.field().  The deleted pair is 
+      # located as described in FasterCSV::Row.field().  The deleted pair is
       # returned, or +nil+ if a pair could not be found.
-      # 
+      #
       def delete(header_or_index, minimum_index = 0)
         if header_or_index.is_a? Integer                 # by index
           @row.delete_at(header_or_index)
@@ -276,27 +276,27 @@ else
         end
       end
 
-      # 
+      #
       # The provided +block+ is passed a header and field for each pair in the row
       # and expected to return +true+ or +false+, depending on whether the pair
       # should be deleted.
-      # 
+      #
       # This method returns the row for chaining.
-      # 
+      #
       def delete_if(&block)
         @row.delete_if(&block)
 
         self  # for chaining
       end
 
-      # 
+      #
       # This method accepts any number of arguments which can be headers, indices,
-      # Ranges of either, or two-element Arrays containing a header and offset.  
+      # Ranges of either, or two-element Arrays containing a header and offset.
       # Each argument will be replaced with a field lookup as described in
       # FasterCSV::Row.field().
-      # 
+      #
       # If called with no arguments, all fields are returned.
-      # 
+      #
       def fields(*headers_and_or_indices)
         if headers_and_or_indices.empty?  # return all fields--no arguments
           @row.map { |pair| pair.last }
@@ -318,15 +318,15 @@ else
       end
       alias_method :values_at, :fields
 
-      # 
+      #
       # :call-seq:
       #   index( header )
       #   index( header, offset )
-      # 
+      #
       # This method will return the index of a field with the provided +header+.
       # The +offset+ can be used to locate duplicate header names, as described in
       # FasterCSV::Row.field().
-      # 
+      #
       def index(header, minimum_index = 0)
         # find the pair
         index = headers[minimum_index..-1].index(header)
@@ -340,52 +340,52 @@ else
       end
       alias_method :include?, :header?
 
-      # 
+      #
       # Returns +true+ if +data+ matches a field in this row, and +false+
       # otherwise.
-      # 
+      #
       def field?(data)
         fields.include? data
       end
 
       include Enumerable
 
-      # 
+      #
       # Yields each pair of the row as header and field tuples (much like
       # iterating over a Hash).
-      # 
+      #
       # Support for Enumerable.
-      # 
+      #
       # This method returns the row for chaining.
-      # 
+      #
       def each(&block)
         @row.each(&block)
 
         self  # for chaining
       end
 
-      # 
-      # Returns +true+ if this row contains the same headers and fields in the 
+      #
+      # Returns +true+ if this row contains the same headers and fields in the
       # same order as +other+.
-      # 
+      #
       def ==(other)
         @row == other.row
       end
 
-      # 
+      #
       # Collapses the row into a simple Hash.  Be warning that this discards field
       # order and clobbers duplicate fields.
-      # 
+      #
       def to_hash
         # flatten just one level of the internal Array
         Hash[*@row.inject(Array.new) { |ary, pair| ary.push(*pair) }]
       end
 
-      # 
+      #
       # Returns the row as a CSV String.  Headers are not used.  Equivalent to:
-      # 
+      #
       #   faster_csv_row.fields.to_csv( options )
-      # 
+      #
       def to_csv(options = Hash.new)
         fields.to_csv(options)
       end
@@ -402,27 +402,27 @@ else
       end
     end
 
-    # 
+    #
     # A FasterCSV::Table is a two-dimensional data structure for representing CSV
-    # documents.  Tables allow you to work with the data by row or column, 
+    # documents.  Tables allow you to work with the data by row or column,
     # manipulate the data, and even convert the results back to CSV, if needed.
-    # 
+    #
     # All tables returned by FasterCSV will be constructed from this class, if
     # header row processing is activated.
-    # 
+    #
     class Table
-      # 
+      #
       # Construct a new FasterCSV::Table from +array_of_rows+, which are expected
-      # to be FasterCSV::Row objects.  All rows are assumed to have the same 
+      # to be FasterCSV::Row objects.  All rows are assumed to have the same
       # headers.
-      # 
+      #
       # A FasterCSV::Table object supports the following Array methods through
       # delegation:
-      # 
+      #
       # * empty?()
       # * length()
       # * size()
-      # 
+      #
       def initialize(array_of_rows)
         @table = array_of_rows
         @mode  = :col_or_row
@@ -440,87 +440,87 @@ else
       extend Forwardable
       def_delegators :@table, :empty?, :length, :size
 
-      # 
-      # Returns a duplicate table object, in column mode.  This is handy for 
-      # chaining in a single call without changing the table mode, but be aware 
+      #
+      # Returns a duplicate table object, in column mode.  This is handy for
+      # chaining in a single call without changing the table mode, but be aware
       # that this method can consume a fair amount of memory for bigger data sets.
-      # 
+      #
       # This method returns the duplicate table for chaining.  Don't chain
       # destructive methods (like []=()) this way though, since you are working
       # with a duplicate.
-      # 
+      #
       def by_col
         self.class.new(@table.dup).by_col!
       end
 
-      # 
+      #
       # Switches the mode of this table to column mode.  All calls to indexing and
       # iteration methods will work with columns until the mode is changed again.
-      # 
+      #
       # This method returns the table and is safe to chain.
-      # 
+      #
       def by_col!
         @mode = :col
 
         self
       end
 
-      # 
-      # Returns a duplicate table object, in mixed mode.  This is handy for 
-      # chaining in a single call without changing the table mode, but be aware 
+      #
+      # Returns a duplicate table object, in mixed mode.  This is handy for
+      # chaining in a single call without changing the table mode, but be aware
       # that this method can consume a fair amount of memory for bigger data sets.
-      # 
+      #
       # This method returns the duplicate table for chaining.  Don't chain
       # destructive methods (like []=()) this way though, since you are working
       # with a duplicate.
-      # 
+      #
       def by_col_or_row
         self.class.new(@table.dup).by_col_or_row!
       end
 
-      # 
+      #
       # Switches the mode of this table to mixed mode.  All calls to indexing and
       # iteration methods will use the default intelligent indexing system until
       # the mode is changed again.  In mixed mode an index is assumed to be a row
       # reference while anything else is assumed to be column access by headers.
-      # 
+      #
       # This method returns the table and is safe to chain.
-      # 
+      #
       def by_col_or_row!
         @mode = :col_or_row
 
         self
       end
 
-      # 
+      #
       # Returns a duplicate table object, in row mode.  This is handy for chaining
       # in a single call without changing the table mode, but be aware that this
       # method can consume a fair amount of memory for bigger data sets.
-      # 
+      #
       # This method returns the duplicate table for chaining.  Don't chain
       # destructive methods (like []=()) this way though, since you are working
       # with a duplicate.
-      # 
+      #
       def by_row
         self.class.new(@table.dup).by_row!
       end
 
-      # 
+      #
       # Switches the mode of this table to row mode.  All calls to indexing and
       # iteration methods will work with rows until the mode is changed again.
-      # 
+      #
       # This method returns the table and is safe to chain.
-      # 
+      #
       def by_row!
         @mode = :row
 
         self
       end
 
-      # 
+      #
       # Returns the headers for the first row of this table (assumed to match all
       # other rows).  An empty Array is returned for empty tables.
-      # 
+      #
       def headers
         if @table.empty?
           Array.new
@@ -529,14 +529,14 @@ else
         end
       end
 
-      # 
+      #
       # In the default mixed mode, this method returns rows for index access and
       # columns for header access.  You can force the index association by first
       # calling by_col!() or by_row!().
-      # 
+      #
       # Columns are returned as an Array of values.  Altering that Array has no
       # effect on the table.
-      # 
+      #
       def [](index_or_header)
         if @mode == :row or  # by index
            (@mode == :col_or_row and index_or_header.is_a? Integer)
@@ -546,22 +546,22 @@ else
         end
       end
 
-      # 
+      #
       # In the default mixed mode, this method assigns rows for index access and
       # columns for header access.  You can force the index association by first
       # calling by_col!() or by_row!().
-      # 
+      #
       # Rows may be set to an Array of values (which will inherit the table's
       # headers()) or a FasterCSV::Row.
-      # 
-      # Columns may be set to a single value, which is copied to each row of the 
+      #
+      # Columns may be set to a single value, which is copied to each row of the
       # column, or an Array of values.  Arrays of values are assigned to rows top
       # to bottom in row major order.  Excess values are ignored and if the Array
       # does not have a value for each row the extra rows will receive a +nil+.
-      # 
+      #
       # Assigning to an existing column or row clobbers the data.  Assigning to
       # new columns creates them at the right end of the table.
-      # 
+      #
       def []=(index_or_header, value)
         if @mode == :row or  # by index
            (@mode == :col_or_row and index_or_header.is_a? Integer)
@@ -591,15 +591,15 @@ else
         end
       end
 
-      # 
+      #
       # The mixed mode default is to treat a list of indices as row access,
       # returning the rows indicated.  Anything else is considered columnar
       # access.  For columnar access, the return set has an Array for each row
       # with the values indicated by the headers in each Array.  You can force
       # column or row mode using by_col!() or by_row!().
-      # 
+      #
       # You cannot mix column and row access.
-      # 
+      #
       def values_at(*indices_or_headers)
         if @mode == :row or  # by indices
            ( @mode == :col_or_row and indices_or_headers.all? do |index|
@@ -614,13 +614,13 @@ else
         end
       end
 
-      # 
+      #
       # Adds a new row to the bottom end of this table.  You can provide an Array,
       # which will be converted to a FasterCSV::Row (inheriting the table's
       # headers()), or a FasterCSV::Row.
-      # 
+      #
       # This method returns the table for chaining.
-      # 
+      #
       def <<(row_or_array)
         if row_or_array.is_a? Array  # append Array
           @table << Row.new(headers, row_or_array)
@@ -631,24 +631,24 @@ else
         self  # for chaining
       end
 
-      # 
+      #
       # A shortcut for appending multiple rows.  Equivalent to:
-      # 
+      #
       #   rows.each { |row| self << row }
-      # 
+      #
       # This method returns the table for chaining.
-      # 
+      #
       def push(*rows)
         rows.each { |row| self << row }
 
         self  # for chaining
       end
 
-      # 
+      #
       # Removes and returns the indicated column or row.  In the default mixed
       # mode indices refer to rows and everything else is assumed to be a column
       # header.  Use by_col!() or by_row!() to force the lookup.
-      # 
+      #
       def delete(index_or_header)
         if @mode == :row or  # by index
            (@mode == :col_or_row and index_or_header.is_a? Integer)
@@ -658,14 +658,14 @@ else
         end
       end
 
-      # 
+      #
       # Removes any column or row for which the block returns +true+.  In the
       # default mixed mode or row mode, iteration is the standard row major
       # walking of rows.  In column mode, interation will +yield+ two element
       # tuples containing the column name and an Array of values for that column.
-      # 
+      #
       # This method returns the table for chaining.
-      # 
+      #
       def delete_if(&block)
         if @mode == :row or @mode == :col_or_row  # by index
           @table.delete_if(&block)
@@ -682,13 +682,13 @@ else
 
       include Enumerable
 
-      # 
+      #
       # In the default mixed mode or row mode, iteration is the standard row major
       # walking of rows.  In column mode, interation will +yield+ two element
       # tuples containing the column name and an Array of values for that column.
-      # 
+      #
       # This method returns the table for chaining.
-      # 
+      #
       def each(&block)
         if @mode == :col
           headers.each { |header| block[[header, self[header]]] }
@@ -704,10 +704,10 @@ else
         @table == other.table
       end
 
-      # 
+      #
       # Returns the table as an Array of Arrays.  Headers will be the first row,
       # then all of the field rows will follow.
-      # 
+      #
       def to_a
         @table.inject([headers]) do |array, row|
           if row.header_row?
@@ -718,13 +718,13 @@ else
         end
       end
 
-      # 
+      #
       # Returns the table as a complete CSV String.  Headers will be listed first,
       # then all of the field rows.
-      # 
+      #
       # This method assumes you want the Table.headers(), unless you explicitly
       # pass <tt>:write_headers => false</tt>.
-      # 
+      #
       def to_csv(options = Hash.new)
         wh = options.fetch(:write_headers, true)
         @table.inject(wh ? [headers.to_csv(options)] : [ ]) do |rows, row|
@@ -745,16 +745,16 @@ else
     # The error thrown when the parser encounters illegal CSV formatting.
     class MalformedCSVError < RuntimeError; end
 
-    # 
+    #
     # A FieldInfo Struct contains details about a field's position in the data
     # source it was read from.  FasterCSV will pass this Struct to some blocks
-    # that make decisions based on field structure.  See 
+    # that make decisions based on field structure.  See
     # FasterCSV.convert_fields() for an example.
-    # 
+    #
     # <b><tt>index</tt></b>::  The zero-based index of the field in its row.
     # <b><tt>line</tt></b>::   The line of the data source this row is from.
     # <b><tt>header</tt></b>:: The header for the column, when available.
-    # 
+    #
     FieldInfo = Struct.new(:index, :line, :header)
 
     # A Regexp used to find and convert some common Date formats.
@@ -764,26 +764,26 @@ else
     DateTimeMatcher =
       / \A(?: (\w+,?\s+)?\w+\s+\d{1,2}\s+\d{1,2}:\d{1,2}:\d{1,2},?\s+\d{2,4} |
               \d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2} )\z /x
-    # 
+    #
     # This Hash holds the built-in converters of FasterCSV that can be accessed by
     # name.  You can select Converters with FasterCSV.convert() or through the
     # +options+ Hash passed to FasterCSV::new().
-    # 
+    #
     # <b><tt>:integer</tt></b>::    Converts any field Integer() accepts.
     # <b><tt>:float</tt></b>::      Converts any field Float() accepts.
-    # <b><tt>:numeric</tt></b>::    A combination of <tt>:integer</tt> 
+    # <b><tt>:numeric</tt></b>::    A combination of <tt>:integer</tt>
     #                               and <tt>:float</tt>.
     # <b><tt>:date</tt></b>::       Converts any field Date::parse() accepts.
     # <b><tt>:date_time</tt></b>::  Converts any field DateTime::parse() accepts.
-    # <b><tt>:all</tt></b>::        All built-in converters.  A combination of 
+    # <b><tt>:all</tt></b>::        All built-in converters.  A combination of
     #                               <tt>:date_time</tt> and <tt>:numeric</tt>.
-    # 
+    #
     # This Hash is intetionally left unfrozen and users should feel free to add
     # values to it that can be accessed by all FasterCSV objects.
-    # 
+    #
     # To add a combo field, the value should be an Array of names.  Combo fields
     # can be nested with other combo fields.
-    # 
+    #
     Converters  = { :integer   => lambda { |f| Integer(f)        rescue f },
                     :float     => lambda { |f| Float(f)          rescue f },
                     :numeric   => [:integer, :float],
@@ -795,23 +795,23 @@ else
                     },
                     :all       => [:date_time, :numeric] }
 
-    # 
+    #
     # This Hash holds the built-in header converters of FasterCSV that can be
     # accessed by name.  You can select HeaderConverters with
     # FasterCSV.header_convert() or through the +options+ Hash passed to
     # FasterCSV::new().
-    # 
+    #
     # <b><tt>:downcase</tt></b>::  Calls downcase() on the header String.
     # <b><tt>:symbol</tt></b>::    The header String is downcased, spaces are
     #                              replaced with underscores, non-word characters
     #                              are dropped, and finally to_sym() is called.
-    # 
+    #
     # This Hash is intetionally left unfrozen and users should feel free to add
     # values to it that can be accessed by all FasterCSV objects.
-    # 
+    #
     # To add a combo field, the value should be an Array of names.  Combo fields
     # can be nested with other combo fields.
-    # 
+    #
     HeaderConverters = {
       :downcase => lambda { |h| h.downcase },
       :symbol   => lambda { |h|
@@ -819,9 +819,9 @@ else
       }
     }
 
-    # 
+    #
     # The options used when no overrides are given by calling code.  They are:
-    # 
+    #
     # <b><tt>:col_sep</tt></b>::            <tt>","</tt>
     # <b><tt>:row_sep</tt></b>::            <tt>:auto</tt>
     # <b><tt>:quote_char</tt></b>::         <tt>'"'</tt>
@@ -833,7 +833,7 @@ else
     # <b><tt>:header_converters</tt></b>::  +nil+
     # <b><tt>:skip_blanks</tt></b>::        +false+
     # <b><tt>:force_quotes</tt></b>::       +false+
-    # 
+    #
     DEFAULT_OPTIONS = { :col_sep            => ",",
                         :row_sep            => :auto,
                         :quote_char         => '"',
@@ -846,10 +846,10 @@ else
                         :skip_blanks        => false,
                         :force_quotes       => false }.freeze
 
-    # 
+    #
     # This method will build a drop-in replacement for many of the standard CSV
     # methods.  It allows you to write code like:
-    # 
+    #
     #   begin
     #     require "faster_csv"
     #     FasterCSV.build_csv_interface
@@ -857,22 +857,22 @@ else
     #     require "csv"
     #   end
     #   # ... use CSV here ...
-    # 
+    #
     # This is not a complete interface with completely identical behavior.
     # However, it is intended to be close enough that you won't notice the
     # difference in most cases.  CSV methods supported are:
-    # 
+    #
     # * foreach()
     # * generate_line()
     # * open()
     # * parse()
     # * parse_line()
     # * readlines()
-    # 
+    #
     # Be warned that this interface is slower than vanilla FasterCSV due to the
-    # extra layer of method calls.  Depending on usage, this can slow it down to 
+    # extra layer of method calls.  Depending on usage, this can slow it down to
     # near CSV speeds.
-    # 
+    #
     def self.build_csv_interface
       Object.const_set(:CSV, Class.new).class_eval do
         def self.foreach(path, rs = :auto, &block)  # :nodoc:
@@ -907,25 +907,25 @@ else
       end
     end
 
-    # 
+    #
     # This method allows you to serialize an Array of Ruby objects to a String or
     # File of CSV data.  This is not as powerful as Marshal or YAML, but perhaps
     # useful for spreadsheet and database interaction.
-    # 
+    #
     # Out of the box, this method is intended to work with simple data objects or
     # Structs.  It will serialize a list of instance variables and/or
     # Struct.members().
-    # 
+    #
     # If you need need more complicated serialization, you can control the process
     # by adding methods to the class to be serialized.
-    # 
+    #
     # A class method csv_meta() is responsible for returning the first row of the
     # document (as an Array).  This row is considered to be a Hash of the form
     # key_1,value_1,key_2,value_2,...  FasterCSV::load() expects to find a class
     # key with a value of the stringified class name and FasterCSV::dump() will
     # create this, if you do not define this method.  This method is only called
     # on the first object of the Array.
-    # 
+    #
     # The next method you can provide is an instance method called csv_headers().
     # This method is expected to return the second line of the document (again as
     # an Array), which is to be used to give each column a header.  By default,
@@ -933,15 +933,15 @@ else
     # with an @ character or call send() passing the header as the method name and
     # the field value as an argument.  This method is only called on the first
     # object of the Array.
-    # 
+    #
     # Finally, you can provide an instance method called csv_dump(), which will
     # be passed the headers.  This should return an Array of fields that can be
     # serialized for this object.  This method is called once for every object in
     # the Array.
-    # 
+    #
     # The +io+ parameter can be used to serialize to a File, and +options+ can be
     # anything FasterCSV::new() accepts.
-    # 
+    #
     def self.dump(ary_of_objs, io = "", options = Hash.new)
       obj_template = ary_of_objs.first
 
@@ -987,30 +987,30 @@ else
       end
     end
 
-    # 
+    #
     # :call-seq:
     #   filter( options = Hash.new ) { |row| ... }
     #   filter( input, options = Hash.new ) { |row| ... }
     #   filter( input, output, options = Hash.new ) { |row| ... }
-    # 
+    #
     # This method is a convenience for building Unix-like filters for CSV data.
-    # Each row is yielded to the provided block which can alter it as needed.  
+    # Each row is yielded to the provided block which can alter it as needed.
     # After the block returns, the row is appended to +output+ altered or not.
-    # 
+    #
     # The +input+ and +output+ arguments can be anything FasterCSV::new() accepts
-    # (generally String or IO objects).  If not given, they default to 
+    # (generally String or IO objects).  If not given, they default to
     # <tt>ARGF</tt> and <tt>$stdout</tt>.
-    # 
+    #
     # The +options+ parameter is also filtered down to FasterCSV::new() after some
-    # clever key parsing.  Any key beginning with <tt>:in_</tt> or 
+    # clever key parsing.  Any key beginning with <tt>:in_</tt> or
     # <tt>:input_</tt> will have that leading identifier stripped and will only
     # be used in the +options+ Hash for the +input+ object.  Keys starting with
-    # <tt>:out_</tt> or <tt>:output_</tt> affect only +output+.  All other keys 
+    # <tt>:out_</tt> or <tt>:output_</tt> affect only +output+.  All other keys
     # are assigned to both objects.
-    # 
+    #
     # The <tt>:output_row_sep</tt> +option+ defaults to
     # <tt>$INPUT_RECORD_SEPARATOR</tt> (<tt>$/</tt>).
-    # 
+    #
     def self.filter(*args)
       # parse options for input, output, or both
       in_options, out_options = Hash.new, {:row_sep => $INPUT_RECORD_SEPARATOR}
@@ -1038,34 +1038,34 @@ else
       end
     end
 
-    # 
+    #
     # This method is intended as the primary interface for reading CSV files.  You
     # pass a +path+ and any +options+ you wish to set for the read.  Each row of
     # file will be passed to the provided +block+ in turn.
-    # 
+    #
     # The +options+ parameter can be anything FasterCSV::new() understands.
-    # 
+    #
     def self.foreach(path, options = Hash.new, &block)
       open(path, "rb", options) do |csv|
         csv.each(&block)
       end
     end
 
-    # 
+    #
     # :call-seq:
     #   generate( str, options = Hash.new ) { |faster_csv| ... }
     #   generate( options = Hash.new ) { |faster_csv| ... }
-    # 
-    # This method wraps a String you provide, or an empty default String, in a 
-    # FasterCSV object which is passed to the provided block.  You can use the 
-    # block to append CSV rows to the String and when the block exits, the 
+    #
+    # This method wraps a String you provide, or an empty default String, in a
+    # FasterCSV object which is passed to the provided block.  You can use the
+    # block to append CSV rows to the String and when the block exits, the
     # final String will be returned.
-    # 
+    #
     # Note that a passed String *is* modfied by this method.  Call dup() before
     # passing if you need a new String.
-    # 
+    #
     # The +options+ parameter can be anthing FasterCSV::new() understands.
-    # 
+    #
     def self.generate(*args)
       # add a default empty String, if none was given
       if args.first.is_a? String
@@ -1080,29 +1080,29 @@ else
       faster_csv.string        # return final String
     end
 
-    # 
-    # This method is a shortcut for converting a single row (Array) into a CSV 
+    #
+    # This method is a shortcut for converting a single row (Array) into a CSV
     # String.
-    # 
+    #
     # The +options+ parameter can be anthing FasterCSV::new() understands.
-    # 
+    #
     # The <tt>:row_sep</tt> +option+ defaults to <tt>$INPUT_RECORD_SEPARATOR</tt>
     # (<tt>$/</tt>) when calling this method.
-    # 
+    #
     def self.generate_line(row, options = Hash.new)
       options = {:row_sep => $INPUT_RECORD_SEPARATOR}.merge(options)
       (new("", options) << row).string
     end
 
-    # 
-    # This method will return a FasterCSV instance, just like FasterCSV::new(), 
-    # but the instance will be cached and returned for all future calls to this 
+    #
+    # This method will return a FasterCSV instance, just like FasterCSV::new(),
+    # but the instance will be cached and returned for all future calls to this
     # method for the same +data+ object (tested by Object#object_id()) with the
     # same +options+.
-    # 
+    #
     # If a block is given, the instance is passed to the block and the return
     # value becomes the return value of the block.
-    # 
+    #
     def self.instance(data = $stdout, options = Hash.new)
       # create a _signature_ for this method call, data object and options
       sig = [data.object_id] +
@@ -1119,18 +1119,18 @@ else
       end
     end
 
-    # 
+    #
     # This method is the reading counterpart to FasterCSV::dump().  See that
     # method for a detailed description of the process.
-    # 
-    # You can customize loading by adding a class method called csv_load() which 
+    #
+    # You can customize loading by adding a class method called csv_load() which
     # will be passed a Hash of meta information, an Array of headers, and an Array
     # of fields for the object the method is expected to return.
-    # 
+    #
     # Remember that all fields will be Strings after this load.  If you need
     # something else, use +options+ to setup converters or provide a custom
     # csv_load() implementation.
-    # 
+    #
     def self.load(io_or_str, options = Hash.new)
       csv = FasterCSV.new(io_or_str, options)
 
@@ -1165,26 +1165,26 @@ else
       results
     end
 
-    # 
+    #
     # :call-seq:
     #   open( filename, mode="rb", options = Hash.new ) { |faster_csv| ... }
     #   open( filename, mode="rb", options = Hash.new )
-    # 
+    #
     # This method opens an IO object, and wraps that with FasterCSV.  This is
     # intended as the primary interface for writing a CSV file.
-    # 
+    #
     # You may pass any +args+ Ruby's open() understands followed by an optional
     # Hash containing any +options+ FasterCSV::new() understands.
-    # 
+    #
     # This method works like Ruby's open() call, in that it will pass a FasterCSV
     # object to a provided block and close it when the block termminates, or it
     # will return the FasterCSV object when no block is provided.  (*Note*: This
-    # is different from the standard CSV library which passes rows to the block.  
+    # is different from the standard CSV library which passes rows to the block.
     # Use FasterCSV::foreach() for that behavior.)
-    # 
-    # An opened FasterCSV object will delegate to many IO methods, for 
+    #
+    # An opened FasterCSV object will delegate to many IO methods, for
     # convenience.  You may call:
-    # 
+    #
     # * binmode()
     # * close()
     # * close_read()
@@ -1209,7 +1209,7 @@ else
     # * to_i()
     # * to_io()
     # * tty?()
-    # 
+    #
     def self.open(*args)
       # find the +options+ Hash
       options = if args.last.is_a? Hash then args.pop else Hash.new end
@@ -1230,18 +1230,18 @@ else
       end
     end
 
-    # 
+    #
     # :call-seq:
     #   parse( str, options = Hash.new ) { |row| ... }
     #   parse( str, options = Hash.new )
-    # 
+    #
     # This method can be used to easily parse CSV out of a String.  You may either
     # provide a +block+ which will be called with each row of the String in turn,
     # or just use the returned Array of Arrays (when no +block+ is given).
-    # 
+    #
     # You pass your +str+ to read from, and an optional +options+ Hash containing
     # anything FasterCSV::new() understands.
-    # 
+    #
     def self.parse(*args, &block)
       csv = new(*args)
       if block.nil?  # slurp contents, if no block is given
@@ -1255,21 +1255,21 @@ else
       end
     end
 
-    # 
-    # This method is a shortcut for converting a single line of a CSV String into 
-    # a into an Array.  Note that if +line+ contains multiple rows, anything 
+    #
+    # This method is a shortcut for converting a single line of a CSV String into
+    # a into an Array.  Note that if +line+ contains multiple rows, anything
     # beyond the first row is ignored.
-    # 
+    #
     # The +options+ parameter can be anthing FasterCSV::new() understands.
-    # 
+    #
     def self.parse_line(line, options = Hash.new)
       new(line, options).shift
     end
 
-    # 
-    # Use to slurp a CSV file into an Array of Arrays.  Pass the +path+ to the 
+    #
+    # Use to slurp a CSV file into an Array of Arrays.  Pass the +path+ to the
     # file and any +options+ FasterCSV::new() understands.
-    # 
+    #
     def self.read(path, options = Hash.new)
       open(path, "rb", options) { |csv| csv.read }
     end
@@ -1279,34 +1279,34 @@ else
       read(*args)
     end
 
-    # 
+    #
     # A shortcut for:
-    # 
+    #
     #   FasterCSV.read( path, { :headers           => true,
     #                           :converters        => :numeric,
     #                           :header_converters => :symbol }.merge(options) )
-    # 
+    #
     def self.table(path, options = Hash.new)
       read( path, { :headers           => true,
                     :converters        => :numeric,
                     :header_converters => :symbol }.merge(options) )
     end
 
-    # 
+    #
     # This constructor will wrap either a String or IO object passed in +data+ for
-    # reading and/or writing.  In addition to the FasterCSV instance methods, 
-    # several IO methods are delegated.  (See FasterCSV::open() for a complete 
+    # reading and/or writing.  In addition to the FasterCSV instance methods,
+    # several IO methods are delegated.  (See FasterCSV::open() for a complete
     # list.)  If you pass a String for +data+, you can later retrieve it (after
     # writing to it, for example) with FasterCSV.string().
-    # 
-    # Note that a wrapped String will be positioned at at the beginning (for 
-    # reading).  If you want it at the end (for writing), use 
-    # FasterCSV::generate().  If you want any other positioning, pass a preset 
+    #
+    # Note that a wrapped String will be positioned at at the beginning (for
+    # reading).  If you want it at the end (for writing), use
+    # FasterCSV::generate().  If you want any other positioning, pass a preset
     # StringIO object instead.
-    # 
-    # You may set any reading and/or writing preferences in the +options+ Hash.  
+    #
+    # You may set any reading and/or writing preferences in the +options+ Hash.
     # Available options are:
-    # 
+    #
     # <b><tt>:col_sep</tt></b>::            The String placed between each field.
     # <b><tt>:row_sep</tt></b>::            The String appended to the end of each
     #                                       row.  This can be set to the special
@@ -1385,7 +1385,7 @@ else
     #                                       by Array or String were not fields of
     #                                       the document and thus will have an
     #                                       empty Array attached.
-    # <b><tt>:headers</tt></b>::            If set to <tt>:first_row</tt> or 
+    # <b><tt>:headers</tt></b>::            If set to <tt>:first_row</tt> or
     #                                       +true+, the initial row of the CSV
     #                                       file will be treated as a row of
     #                                       headers.  If set to an Array, the
@@ -1420,12 +1420,12 @@ else
     #                                       content.
     # <b><tt>:force_quotes</tt></b>::       When set to a +true+ value, FasterCSV
     #                                       will quote all CSV fields it creates.
-    # 
+    #
     # See FasterCSV::DEFAULT_OPTIONS for the default settings.
-    # 
+    #
     # Options cannot be overriden in the instance methods for performance reasons,
     # so be sure to set what you want here.
-    # 
+    #
     def initialize(data, options = Hash.new)
       # build the options for this read/write
       options = DEFAULT_OPTIONS.merge(options)
@@ -1446,10 +1446,10 @@ else
       @lineno = 0
     end
 
-    # 
-    # The line number of the last row read from this file.  Fields with nested 
+    #
+    # The line number of the last row read from this file.  Fields with nested
     # line-end characters will not affect this count.
-    # 
+    #
     attr_reader :lineno
 
     ### IO and StringIO Delegation ###
@@ -1470,14 +1470,14 @@ else
 
     ### End Delegation ###
 
-    # 
+    #
     # The primary write method for wrapped Strings and IOs, +row+ (an Array or
     # FasterCSV::Row) is converted to CSV and appended to the data source.  When a
     # FasterCSV::Row is passed, only the row's fields() are appended to the
     # output.
-    # 
+    #
     # The data source must be open for writing.
-    # 
+    #
     def <<(row)
       # make sure headers have been assigned
       if header_row? and [Array, String].include? @use_headers.class
@@ -1502,36 +1502,36 @@ else
     alias_method :add_row, :<<
     alias_method :puts,    :<<
 
-    # 
+    #
     # :call-seq:
     #   convert( name )
     #   convert { |field| ... }
     #   convert { |field, field_info| ... }
-    # 
-    # You can use this method to install a FasterCSV::Converters built-in, or 
+    #
+    # You can use this method to install a FasterCSV::Converters built-in, or
     # provide a block that handles a custom conversion.
-    # 
+    #
     # If you provide a block that takes one argument, it will be passed the field
     # and is expected to return the converted value or the field itself.  If your
-    # block takes two arguments, it will also be passed a FieldInfo Struct, 
-    # containing details about the field.  Again, the block should return a 
+    # block takes two arguments, it will also be passed a FieldInfo Struct,
+    # containing details about the field.  Again, the block should return a
     # converted field or the field itself.
-    # 
+    #
     def convert(name = nil, &converter)
       add_converter(:converters, self.class::Converters, name, &converter)
     end
 
-    # 
+    #
     # :call-seq:
     #   header_convert( name )
     #   header_convert { |field| ... }
     #   header_convert { |field, field_info| ... }
-    # 
+    #
     # Identical to FasterCSV.convert(), but for header rows.
-    # 
+    #
     # Note that this method must be called before header rows are read to have any
     # effect.
-    # 
+    #
     def header_convert(name = nil, &converter)
       add_converter( :header_converters,
                      self.class::HeaderConverters,
@@ -1541,24 +1541,24 @@ else
 
     include Enumerable
 
-    # 
+    #
     # Yields each row of the data source in turn.
-    # 
+    #
     # Support for Enumerable.
-    # 
+    #
     # The data source must be open for reading.
-    # 
+    #
     def each
       while row = shift
         yield row
       end
     end
 
-    # 
+    #
     # Slurps the remaining rows and returns an Array of Arrays.
-    # 
+    #
     # The data source must be open for reading.
-    # 
+    #
     def read
       rows = to_a
       if @use_headers
@@ -1574,13 +1574,13 @@ else
       @use_headers and @headers.nil?
     end
 
-    # 
+    #
     # The primary read method for wrapped Strings and IOs, a single row is pulled
     # from the data source, parsed and returned as an Array of fields (if header
     # rows are not used) or a FasterCSV::Row (when header rows are used).
-    # 
+    #
     # The data source must be open for reading.
-    # 
+    #
     def shift
       #########################################################################
       ### This method is purposefully kept a bit long as simple conditional ###
@@ -1600,10 +1600,10 @@ else
       # begin with a blank line, so we can always add to it
       line = String.new
 
-      # 
+      #
       # it can take multiple calls to <tt>@io.gets()</tt> to get a full line,
       # because of \r and/or \n characters embedded in quoted fields
-      # 
+      #
       loop do
         # add another read to the line
         if read_line = @io.gets(@row_sep)
@@ -1615,10 +1615,10 @@ else
         parse =  line.dup
         parse.sub!(@parsers[:line_end], "")
 
-        # 
-        # I believe a blank line should be an <tt>Array.new</tt>, not 
+        #
+        # I believe a blank line should be an <tt>Array.new</tt>, not
         # CSV's <tt>[nil]</tt>
-        # 
+        #
         if parse.empty?
           @lineno += 1
           if @skip_blanks
@@ -1742,16 +1742,16 @@ else
 
     private
 
-    # 
+    #
     # Stores the indicated separators for later use.
-    # 
+    #
     # If auto-discovery was requested for <tt>@row_sep</tt>, this method will read
     # ahead in the <tt>@io</tt> and try to find one.  +ARGF+, +STDIN+, +STDOUT+,
     # +STDERR+ and any stream open for output only with a default
     # <tt>@row_sep</tt> of <tt>$INPUT_RECORD_SEPARATOR</tt> (<tt>$/</tt>).
-    # 
+    #
     # This method also establishes the quoting rules used for CSV output.
-    # 
+    #
     def init_separators(options)
       # store the selected separators
       @col_sep            = options.delete(:col_sep)
@@ -1773,10 +1773,10 @@ else
           begin
             saved_pos = @io.pos  # remember where we were
             while @row_sep == :auto
-              # 
-              # if we run out of data, it's probably a single line 
+              #
+              # if we run out of data, it's probably a single line
               # (use a sensible default)
-              # 
+              #
               if @io.eof?
                 @row_sep = $INPUT_RECORD_SEPARATOR
                 break
@@ -1858,16 +1858,16 @@ else
       }
     end
 
-    # 
+    #
     # Loads any converters requested during construction.
-    # 
+    #
     # If +field_name+ is set <tt>:converters</tt> (the default) field converters
     # are set.  When +field_name+ is <tt>:header_converters</tt> header converters
     # are added instead.
-    # 
-    # The <tt>:unconverted_fields</tt> option is also actived for 
+    #
+    # The <tt>:unconverted_fields</tt> option is also actived for
     # <tt>:converters</tt> calls, if requested.
-    # 
+    #
     def init_converters(options, field_name = :converters)
       if field_name == :converters
         @unconverted_fields = options.delete(:unconverted_fields)
@@ -1909,15 +1909,15 @@ else
       init_converters(options, :header_converters)
     end
 
-    # 
-    # The actual work method for adding converters, used by both 
+    #
+    # The actual work method for adding converters, used by both
     # FasterCSV.convert() and FasterCSV.header_convert().
-    # 
+    #
     # This method requires the +var_name+ of the instance variable to place the
     # converters in, the +const+ Hash to lookup named converters in, and the
     # normal parameters of the FasterCSV.convert() and FasterCSV.header_convert()
     # methods.
-    # 
+    #
     def add_converter(var_name, const, name = nil, &converter)
       if name.nil?  # custom converter
         instance_variable_get("@#{var_name}") << converter
@@ -1934,13 +1934,13 @@ else
       end
     end
 
-    # 
+    #
     # Processes +fields+ with <tt>@converters</tt>, or <tt>@header_converters</tt>
     # if +headers+ is passed as +true+, returning the converted field set.  Any
     # converter that changes the field into something other than a String halts
     # the pipeline of conversion for that field.  This is primarily an efficiency
     # shortcut.
-    # 
+    #
     def convert_fields(fields, headers = false)
       # see if we are converting headers or fields
       converters = headers ? @header_converters : @converters
@@ -1959,16 +1959,16 @@ else
       end
     end
 
-    # 
+    #
     # This methods is used to turn a finished +row+ into a FasterCSV::Row.  Header
     # rows are also dealt with here, either by returning a FasterCSV::Row with
     # identical headers and fields (save that the fields do not go through the
     # converters) or by reading past them to return a field row. Headers are also
     # saved in <tt>@headers</tt> for use in future rows.
-    # 
+    #
     # When +nil+, +row+ is assumed to be a header row not based on an actual row
     # of the stream.
-    # 
+    #
     def parse_headers(row = nil)
       if @headers.nil?                # header row
         @headers = case @use_headers  # save headers
@@ -1998,11 +1998,11 @@ else
       FasterCSV::Row.new(@headers, convert_fields(row))  # field row
     end
 
-    # 
+    #
     # Thiw methods injects an instance variable <tt>unconverted_fields</tt> into
     # +row+ and an accessor method for it called unconverted_fields().  The
     # variable is set to the contents of +fields+.
-    # 
+    #
     def add_unconverted_fields(row, fields)
       class << row
         attr_reader :unconverted_fields

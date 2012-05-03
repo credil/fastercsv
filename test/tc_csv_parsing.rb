@@ -9,12 +9,12 @@ require "test/unit"
 
 require "faster_csv"
 
-# 
-# Following tests are my interpretation of the 
-# {CSV RCF}[http://www.ietf.org/rfc/rfc4180.txt].  I only deviate from that 
+#
+# Following tests are my interpretation of the
+# {CSV RCF}[http://www.ietf.org/rfc/rfc4180.txt].  I only deviate from that
 # document in one place (intentionally) and that is to make the default row
 # separator <tt>$/</tt>.
-# 
+#
 class TestCSVParsing < Test::Unit::TestCase
   def test_mastering_regex_example
     ex = %Q{Ten Thousand,10000, 2710 ,,"10,000","It's ""10 Grand"", baby",10K}
@@ -22,7 +22,7 @@ class TestCSVParsing < Test::Unit::TestCase
                     "It's \"10 Grand\", baby", "10K" ],
                   FasterCSV.parse_line(ex) )
   end
-  
+
   # Pulled from:  http://www.ruby-lang.org/cgi-bin/cvsweb.cgi/ruby/test/csv/test_csv.rb?rev=1.12.2.2;content-type=text%2Fplain
   def test_std_lib_csv
     [ ["\t", ["\t"]],
@@ -110,15 +110,15 @@ class TestCSVParsing < Test::Unit::TestCase
         assert_equal(edge_case.last, FasterCSV.parse_line(edge_case.first))
       end
   end
-  
+
   def test_james_edge_cases
     # A read at eof? should return nil.
     assert_equal(nil, FasterCSV.parse_line(""))
-    # 
+    #
     # With CSV it's impossible to tell an empty line from a line containing a
     # single +nil+ field.  The standard CSV library returns <tt>[nil]</tt>
     # in these cases, but <tt>Array.new</tt> makes more sense to me.
-    # 
+    #
     assert_equal(Array.new, FasterCSV.parse_line("\n1,2,3\n"))
   end
 
@@ -148,23 +148,23 @@ class TestCSVParsing < Test::Unit::TestCase
       FasterCSV.parse_line("1,\"23\"4\"5\", 6")
     end
   end
-  
+
   def test_malformed_csv
     assert_raise(FasterCSV::MalformedCSVError) do
       FasterCSV.parse_line("1,2\r,3", :row_sep => "\n")
     end
-    
+
     bad_data = <<-END_DATA.gsub(/^ +/, "")
     line,1,abc
     line,2,"def\nghi"
-    
+
     line,4,some\rjunk
     line,5,jkl
     END_DATA
     lines = bad_data.to_a
     assert_equal(6, lines.size)
     assert_match(/\Aline,4/, lines.find { |l| l =~ /some\rjunk/ })
-    
+
     csv = FasterCSV.new(bad_data)
     begin
       loop do
@@ -176,21 +176,21 @@ class TestCSVParsing < Test::Unit::TestCase
                     $!.message )
     end
 
-    assert_raise(FasterCSV::MalformedCSVError) do 
+    assert_raise(FasterCSV::MalformedCSVError) do
       FasterCSV.parse_line('1,2,"3...')
     end
-    
+
     bad_data = <<-END_DATA.gsub(/^ +/, "")
     line,1,abc
     line,2,"def\nghi"
-    
+
     line,4,8'10"
     line,5,jkl
     END_DATA
     lines = bad_data.to_a
     assert_equal(6, lines.size)
     assert_match(/\Aline,4/, lines.find { |l| l =~ /8'10"/ })
-    
+
     csv = FasterCSV.new(bad_data)
     begin
       loop do
