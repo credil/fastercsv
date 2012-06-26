@@ -7,7 +7,7 @@
 #
 # See FasterCSV for documentation.
 
-if RUBY_VERSION >= "1.9"
+if false && RUBY_VERSION >= "1.9"
   class FasterCSV
     def self.const_missing(*_)
       raise NotImplementedError, "Please switch to Ruby 1.9's standard CSV "  +
